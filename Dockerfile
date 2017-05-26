@@ -3,18 +3,22 @@ FROM java:openjdk-8-jre-alpine
 MAINTAINER bookkeeper community 
 
 RUN apk add --no-cache wget bash \
-&& mkdir -p /opt/dl_all \
-&& wget -q https://github.com/twitter/distributedlog/releases/download/0.3.51-RC1/distributedlog-service-3ff9e33fa577f50eebb8ee971ddb265c971c3717.zip \
-&& unzip distributedlog-service-3ff9e33fa577f50eebb8ee971ddb265c971c3717.zip \
-&& mv distributedlog-service /opt/dl_all/
+&& mkdir -p /opt \
+&& cd /opt \
+&& wget -q http://www.apache.org/dist/bookkeeper/bookkeeper-4.4.0/bookkeeper-server-4.4.0-bin.tar.gz \
+&& tar zxf  bookkeeper-server-4.4.0-bin.tar.gz \
+&& mkdir -p /opt/bookkeeper \
+&& mv bookkeeper-server-4.4.0/ /opt/bookkeeper/ \
+&& wget -q http://www.apache.org/dist/zookeeper/zookeeper-3.5.2-alpha/zookeeper-3.5.2-alpha.tar.gz \
+&& tar xvzf  zookeeper-3.5.2-alpha.tar.gz \
+&& mkdir -p /opt/zk \
+&& mv zookeeper-3.5.2-alpha/ /opt/zk/
 
 ENV BOOKIE_PORT 3181
 
 EXPOSE $BOOKIE_PORT
 
-# DL contains twitter version contains bookkeeper bins, after bk4.5.0 will use apache version.
-WORKDIR /opt/dl_all
+WORKDIR /opt/bookkeeper
 
-COPY /entrypoint.sh /opt/dl_all/entrypoint.sh
-ENTRYPOINT /opt/dl_all/entrypoint.sh
-
+COPY entrypoint.sh /opt/bookkeeper/entrypoint.sh
+ENTRYPOINT /opt/bookkeeper/entrypoint.sh
