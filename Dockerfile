@@ -1,6 +1,6 @@
 FROM java:openjdk-8-jre-alpine
 
-MAINTAINER distributedlog
+MAINTAINER bookkeeper community 
 
 RUN apk add --no-cache wget bash \
 && mkdir -p /opt/dl_all \
