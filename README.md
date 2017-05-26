@@ -1,4 +1,4 @@
 # docker-distributedlog
 
-Dockerfile for [BookKeeper](http://http://bookkeeper.apache.org/).
+Dockerfile for [BookKeeper](http://bookkeeper.apache.org/).
 
