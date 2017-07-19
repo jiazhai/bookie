@@ -34,58 +34,27 @@ echo "ZK_URL is $ZK_URL"
 echo "BK_DIR is $BK_DIR"
 echo "BK_LEDGERS_PATH is $BK_LEDGERS_PATH"
 
-sed -i 's/3181/'$PORT0'/' /opt/bookkeeper/bookkeeper-server-4.4.0/conf/bk_server.conf
-sed -i "s/localhost:2181/${ZK_URL}/" /opt/bookkeeper/bookkeeper-server-4.4.0/conf/bk_server.conf
-sed -i 's|journalDirectory=/tmp/bk-txn|journalDirectory='${BK_DIR}'/journal|' /opt/bookkeeper/bookkeeper-server-4.4.0/conf/bk_server.conf
-sed -i 's|ledgerDirectories=/tmp/bk-data|ledgerDirectories='${BK_DIR}'/ledgers|' /opt/bookkeeper/bookkeeper-server-4.4.0/conf/bk_server.conf
-sed -i 's|indexDirectories=/tmp/data/bk/ledgers|indexDirectories='${BK_DIR}'/index|' /opt/bookkeeper/bookkeeper-server-4.4.0/conf/bk_server.conf
-sed -i 's|# zkLedgersRootPath=/ledgers|zkLedgersRootPath='${BK_LEDGERS_PATH}'|' /opt/bookkeeper/bookkeeper-server-4.4.0/conf/bk_server.conf
+# env vars to replace values in config files
+export bookiePort=${bookiePort:-${PORT0}}
+export zkServers=${zkServers:-${ZK_URL}}
+export zkLedgersRootPath=${zkLedgersRootPath:-${BK_LEDGERS_PATH}}
+export journalDirectory=${journalDirectory:-${BK_DIR}/journal}
+export ledgerDirectories=${ledgerDirectories:-${BK_DIR}/ledgers}
+export indexDirectories=${indexDirectories:-${BK_DIR}/index}
+
+python apply-config-from-env.py /opt/bookkeeper/conf
 
 echo "wait for zookeeper"
-until /opt/zk/zookeeper-3.5.2-alpha/bin/zkCli.sh -server $ZK_URL ls /; do sleep 2; done
+until /opt/zk/bin/zkCli.sh -server $ZK_URL ls /; do sleep 2; done
 
 echo "create the zk root"
-/opt/zk/zookeeper-3.5.2-alpha/bin/zkCli.sh -server $ZK_URL create /${BK_CLUSTER_NAME}
+/opt/zk/bin/zkCli.sh -server $ZK_URL create /${BK_CLUSTER_NAME}
 
-
-#Format bookie metadata in zookeeper, the command should be run only once, because this command will clear all the bookies metadata in zk.
-retString=`/opt/zk/zookeeper-3.5.2-alpha/bin/zkCli.sh -server $ZK_URL stat ${BK_LEDGERS_PATH}/available/readonly 2>&1`
-echo $retString | grep "not exist"
-if [ $? -eq 0 ]; then
-    # create ephemeral zk node bkInitLock
-    retString=`/opt/zk/zookeeper-3.5.2-alpha/bin/zkCli.sh -server $ZK_URL create -e /${BK_CLUSTER_NAME}/bkInitLock 2>&1`
-    echo $retString | grep "Created"
-    if [ $? -eq 0 ]; then
-        # bkInitLock created success, this is the first bookie creating
-        echo "Bookkeeper metadata not be formated before, do the format."
-        BOOKIE_CONF=/opt/bookkeeper/bookkeeper-server-4.4.0/conf/bk_server.conf /opt/bookkeeper/bookkeeper-server-4.4.0/bin/bookkeeper shell metaformat -n -f
-        /opt/zk/zookeeper-3.5.2-alpha/bin/zkCli.sh -server $ZK_URL delete /${BK_CLUSTER_NAME}/bkInitLock
-    else
-        # Wait 100s for other bookie do the format
-        i=0
-        while [ $i -lt 10 ]
-        do
-            sleep 10
-            (( i++ ))
-            retString=`/opt/zk/zookeeper-3.5.2-alpha/bin/zkCli.sh -server $ZK_URL stat ${BK_LEDGERS_PATH}/available/readonly 2>&1`
-            echo $retString | grep "not exist"
-            if [ $? -eq 0 ]; then
-                echo "wait $i * 10 seconds, still not formated"
-                continue
-            else
-                echo "wait $i * 10 seconds, bookkeeper formated"
-                break
-            fi
-
-            echo "Waited 100 seconds for bookkeeper metaformat, something wrong, please check"
-            exit
-        done
-    fi
-else
-    echo "Bookkeeper metadata be formated before, no need format"
-fi
+echo "format zk metadata"
+export BOOKIE_CONF=/opt/bookkeeper/conf/bk_server.conf
+export SERVICE_PORT=$PORT0
+/opt/bookkeeper/bin/bookkeeper shell metaformat -n
 
 echo "start a new bookie"
-# start bookie,
-SERVICE_PORT=$PORT0 /opt/bookkeeper/bookkeeper-server-4.4.0/bin/bookkeeper bookie --conf /opt/bookkeeper/bookkeeper-server-4.4.0/conf/bk_server.conf
+/opt/bookkeeper/bin/bookkeeper
 
