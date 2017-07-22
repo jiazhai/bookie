@@ -56,5 +56,5 @@ export SERVICE_PORT=$PORT0
 /opt/bookkeeper/bin/bookkeeper shell metaformat -n
 
 echo "start a new bookie"
-/opt/bookkeeper/bin/bookkeeper
+/opt/bookkeeper/bin/bookkeeper bookie
 

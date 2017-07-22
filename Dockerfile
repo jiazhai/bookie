@@ -6,7 +6,6 @@ MAINTAINER bookkeeper community
 ARG BK_VERSION=4.4.0
 ARG DISTRO_NAME=bookkeeper-server-${BK_VERSION}-bin
 ARG ZK_VERSION=3.5.2-alpha
-ARG GPG_KEY=D0BC8D8A4E90A40AFDFC43B3E22A746A68E327C1
 
 RUN set -x \
 && apk add --no-cache  \
@@ -19,7 +18,7 @@ RUN set -x \
 && wget -q "https://archive.apache.org/dist/bookkeeper/bookkeeper-${BK_VERSION}/${DISTRO_NAME}.tar.gz" \
 && tar -xzf "$DISTRO_NAME.tar.gz" \
 && rm -rf "$DISTRO_NAME.tar.gz" \
-&& mv bookkeeper-server-4.4.0/ /opt/bookkeeper/ \
+&& mv bookkeeper-server-${BK_VERSION}/ /opt/bookkeeper/ \
 && wget -q http://www.apache.org/dist/zookeeper/zookeeper-${ZK_VERSION}/zookeeper-${ZK_VERSION}.tar.gz \
 && tar -xzf  zookeeper-${ZK_VERSION}.tar.gz \
 && mv zookeeper-${ZK_VERSION}/ /opt/zk/
@@ -33,4 +32,3 @@ WORKDIR /opt/bookkeeper
 COPY apply-config-from-env.py /opt/bookkeeper
 COPY entrypoint.sh /opt/bookkeeper/entrypoint.sh
 ENTRYPOINT ["/opt/bookkeeper/entrypoint.sh"]
-CMD ["bookie"]
