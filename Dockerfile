@@ -43,7 +43,7 @@ RUN set -x \
     && mv bookkeeper-server-${BK_VERSION}/ /opt/bookkeeper/ \
     && wget -q http://www.apache.org/dist/zookeeper/zookeeper-${ZK_VERSION}/zookeeper-${ZK_VERSION}.tar.gz \
     && tar -xzf  zookeeper-${ZK_VERSION}.tar.gz \
-    && mv zookeeper-${ZK_VERSION}/ /opt/zk/
+    && mv zookeeper-${ZK_VERSION}/ /opt/zk/ \
     && rm -rf "zookeeper-${ZK_VERSION}.tar.gz" "$DISTRO_NAME.tar.gz" "$DISTRO_NAME.tar.gz.asc" "$DISTRO_NAME.tar.gz.md5" "$DISTRO_NAME.tar.gz.sha1"
 
 ENV JAVA_HOME /usr
