@@ -55,7 +55,7 @@ fi
 python apply-config-from-env.py /opt/bookkeeper/conf
 
 echo "wait for zookeeper"
-until /opt/bookkeeper/bin/bookkeeper org.apache.zookeeper.ZooKeeperMain -server ${BK_zkServers} ls /; do sleep 5; done
+until /opt/zk/bin/zkCli.sh  -server ${BK_zkServers} ls /; do sleep 5; done
 
 echo "create the zk root dir for bookkeeper"
 /opt/zk/bin/zkCli.sh -server ${BK_zkServers} create ${BK_CLUSTER_ROOT_PATH}

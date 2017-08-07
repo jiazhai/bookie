@@ -22,6 +22,7 @@ MAINTAINER Apache BookKeeper <dev@bookkeeper.apache.org>
 ARG BK_VERSION=4.4.0
 ARG DISTRO_NAME=bookkeeper-server-${BK_VERSION}-bin
 ARG GPG_KEY=B3D56514
+ARG ZK_VERSION=3.5.2-alpha
 
 ENV BOOKIE_PORT=3181
 EXPOSE $BOOKIE_PORT
@@ -40,7 +41,10 @@ RUN set -x \
     && gpg --batch --verify "$DISTRO_NAME.tar.gz.asc" "$DISTRO_NAME.tar.gz" \
     && tar -xzf "$DISTRO_NAME.tar.gz" \
     && mv bookkeeper-server-${BK_VERSION}/ /opt/bookkeeper/ \
-    && rm -rf "$DISTRO_NAME.tar.gz" "$DISTRO_NAME.tar.gz.asc" "$DISTRO_NAME.tar.gz.md5" "$DISTRO_NAME.tar.gz.sha1"
+    && wget -q http://www.apache.org/dist/zookeeper/zookeeper-${ZK_VERSION}/zookeeper-${ZK_VERSION}.tar.gz \
+    && tar -xzf  zookeeper-${ZK_VERSION}.tar.gz \
+    && mv zookeeper-${ZK_VERSION}/ /opt/zk/
+    && rm -rf "zookeeper-${ZK_VERSION}.tar.gz" "$DISTRO_NAME.tar.gz" "$DISTRO_NAME.tar.gz.asc" "$DISTRO_NAME.tar.gz.md5" "$DISTRO_NAME.tar.gz.sha1"
 
 ENV JAVA_HOME /usr
 WORKDIR /opt/bookkeeper
