@@ -1,3 +1,6 @@
 {
-  "contributors": ["test"]
+  "contributors": "hello-contributors",
+  "message": "hello-message",
+  "label": "hello-label...",
+  "recheckComment": "hello-recheckComment..."
 }
